@@ -5,6 +5,7 @@ import os
 import sys
 import typing
 import uuid
+import yaml
 from collections import OrderedDict
 from dataclasses import _MISSING_TYPE
 from importlib import metadata
@@ -16,6 +17,7 @@ from prettytable import PrettyTable
 
 from keep.api.core.posthog import posthog_client
 from keep.functions import cyaml
+from keep.parser.parser import Parser
 from keep.providers.models.provider_config import ProviderScope
 from keep.providers.providers_factory import ProvidersFactory
 
@@ -1591,6 +1593,59 @@ def login(info: Info):
     # kills the server also, great success
     os._exit(0)
 
+    
+    @workflow.command()
+    @click.option(
+        "--file",
+        "-f",
+        type=click.Path(exists=True),
+        help="Path to the workflow file or directory containing workflow files",
+        required=True,
+    )
+    @pass_info
+    def validate(info: Info, file: str):
+        """Validate a workflow or workflows from a file or directory."""
+        import os
+        import sys
+        import yaml
+        from keep.parser.parser import Parser
+    
+        tenant_id = getattr(info, "tenant_id", "default")
+        parser = Parser()
+    
+        if os.path.isdir(file):
+            files = [
+                os.path.join(file, f)
+                for f in os.listdir(file)
+                if f.endswith((".yaml", ".yml"))
+            ]
+            if not files:
+                click.echo(click.style("❌ No workflow files found in directory", fg="red"))
+                sys.exit(1)
+                
+            all_valid = True
+            for filepath in files:
+                try:
+                    with open(filepath, "r") as f:
+                        workflow_yaml = yaml.safe_load(f)
+                        parser.parse(tenant_id, workflow_yaml)
+                        click.echo(click.style(f"✓ {os.path.basename(filepath)}: Valid", fg="green"))
+                except Exception as e:
+                    all_valid = False
+                    click.echo(click.style(f"✗ {os.path.basename(filepath)}: Invalid - {str(e)}", fg="red"))
+            
+            if not all_valid:
+                sys.exit(1)
+                
+        else:
+            try:
+                with open(file, "r") as f:
+                    workflow_yaml = yaml.safe_load(f)
+                    parser.parse(tenant_id, workflow_yaml)
+                    click.echo(click.style("✓ Workflow is valid", fg="green"))
+            except Exception as e:
+                click.echo(click.style(f"✗ Workflow invalid: {str(e)}", fg="red"))
+                sys.exit(1)
 
 if __name__ == "__main__":
     cli(auto_envvar_prefix="KEEP")
