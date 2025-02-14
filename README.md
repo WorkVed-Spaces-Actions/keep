@@ -6,7 +6,7 @@
 
 </br>
 
-<div align="center">Single pane of glass, alert deduplication, enrichment, filtering and correlation, bi-directional integrations, workflows, dashboards.
+<div align="center">Single pane of glass, alert deduplication, enrichment, filtering and correlation, bi-directional integrations, workflows, 
 </br>
 </div>
 
