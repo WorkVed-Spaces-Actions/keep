@@ -5,8 +5,7 @@
 <h1 align="center">The open-source AIOps and alert management platform</h1>
 
 </br>
-
-<div align="center">Single pane of glass, alert deduplication, enrichment, filtering and correlation, bi-directional integrations, workflows, dashboards.
+dashboards.
 </br>
 </div>
 
